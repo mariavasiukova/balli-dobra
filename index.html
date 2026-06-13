@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Баллы Добра</title>
+    <link rel="icon" type="image/x-icon" href="/images/favicon.png">
+    <link rel="manifest" href="/manifest.json">
+    <link rel="stylesheet" href="style.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,400;14..32,500;14..32,600;14..32,700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body>
+
+    <header>
+        <div class="container header-flex">
+            <div class="logo">
+                <img src="/images/logo.png" alt="Логотип" class="logo-img" onerror="this.style.display='none'">
+                <h1>Баллы Добра</h1>
+            </div>
+            <div class="header-right">
+                <nav>
+                    <a onclick="showPage('home')">Главная</a>
+                    <a onclick="showPage('catalog')">Каталог</a>
+                </nav>
+                <div id="user-menu"></div>
+            </div>
+        </div>
+    </header>
+
+    <main>
+        <div class="container">
+            <!-- Главная страница -->
+            <div id="page-home" class="page active">
+                <div class="hero">
+                    <div class="hero-content">
+                        <h2>Твои достижения — твои возможности</h2>
+                        <p>Дипломы, грамоты и сертификаты приносят баллы. Обменивай их на путёвки в лагеря, экскурсии и
+                            мастер-классы</p>
+                        <div id="hero-button"></div>
+                    </div>
+                    <div class="hero-stats" id="hero-stats"></div>
+                </div>
+
+                <div class="section-title">
+                    <h3>Доска почёта</h3>
+                </div>
+                <div id="rating-list" class="rating-list"></div>
+
+                <div class="section-title">
+                    <h3>Популярные предложения</h3>
+                </div>
+                <div id="popular-offers" class="cards-grid"></div>
+
+                <div class="section-title">
+                    <h3>Испытай себя</h3>
+                </div>
+                <div id="challenges-list" class="challenges-grid"></div>
+            </div>
+
+            <!-- Каталог -->
+            <div id="page-catalog" class="page">
+                <div class="section-title">
+                    <h2>Каталог наград</h2>
+                </div>
+                <div class="filters">
+                    <select id="filter-type">
+                        <option value="all">Все типы</option>
+                        <option value="camp">Лагеря</option>
+                        <option value="excursion">Экскурсии</option>
+                        <option value="masterclass">Мастер-классы</option>
+                        <option value="quest">Квесты</option>
+                    </select>
+                    <input type="text" id="filter-city" placeholder="Город">
+                    <button id="apply-filters" class="btn btn-primary">Найти</button>
+                    <button id="reset-filters" class="btn btn-secondary">Сбросить</button>
+                </div>
+                <div id="catalog-list" class="cards-grid"></div>
+                <div id="catalog-pagination" class="pagination"></div>
+            </div>
+
+            <!-- Профиль -->
+            <div id="page-profile" class="page">
+                <div id="profile-content"></div>
+            </div>
+
+            <!-- Добавление достижения -->
+            <div id="page-add-achievement" class="page">
+                <div class="form-card">
+                    <h2>Новое достижение</h2>
+                    <form id="achievement-form">
+                        <div class="form-group"><label>Название</label><input type="text" id="ach-title" required></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Категория</label>
+                                <select id="ach-category">
+                                    <option value="science">Наука</option>
+                                    <option value="sport">Спорт</option>
+                                    <option value="art">Искусство</option>
+                                    <option value="volunteer">Волонтёрство</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Уровень</label>
+                                <select id="ach-level">
+                                    <option value="school">Школьный</option>
+                                    <option value="city">Городской</option>
+                                    <option value="regional">Региональный</option>
+                                    <option value="national">Всероссийский</option>
+                                    <option value="international">Международный</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Результат</label>
+                                <select id="ach-placement">
+                                    <option value="winner">Победитель</option>
+                                    <option value="prize">Призёр</option>
+                                    <option value="participant">Участник</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>Баллы</label>
+                            <div id="points-preview" class="points-preview">0 баллов</div>
+                        </div>
+                        <div class="form-group"><label>Файл диплома</label><input type="file" id="ach-file"
+                                accept="image/*,.pdf" required>
+                            <div id="file-preview"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Отправить на проверку</button>
+                    </form>
+                    <div id="achievement-message"></div>
+                </div>
+            </div>
+
+            <!-- Детали мероприятия -->
+            <div id="page-offering-detail" class="page">
+                <div id="offering-detail-content"></div>
+            </div>
+
+            <!-- Детали бронирования -->
+            <div id="page-booking-detail" class="page">
+                <div id="booking-detail-content"></div>
+            </div>
+
+            <!-- Админ-панель (только нужные вкладки) -->
+            <div id="page-admin" class="page">
+                <div class="admin-tabs">
+                    <button class="admin-tab active" data-tab="pending-achievements">Достижения на проверке</button>
+                    <button class="admin-tab" data-tab="pending-challenges">Челленджи на проверке</button>
+                    <button class="admin-tab" data-tab="add-offering">Добавить мероприятие</button>
+                    <button class="admin-tab" data-tab="add-challenge">Добавить челлендж</button>
+                </div>
+                <div id="admin-pending-achievements" class="admin-tab-content active"></div>
+                <div id="admin-pending-challenges" class="admin-tab-content"></div>
+
+                <!-- Добавление мероприятия -->
+                <div id="admin-add-offering" class="admin-tab-content">
+                    <div class="form-card">
+                        <h3>Новое мероприятие</h3>
+                        <form id="admin-add-offering-form" enctype="multipart/form-data">
+                            <div class="form-row">
+                                <div class="form-group"><label>Тип</label>
+                                    <select id="offering-type">
+                                        <option value="camp">Лагерь</option>
+                                        <option value="excursion">Экскурсия</option>
+                                        <option value="masterclass">Мастер-класс</option>
+                                        <option value="quest">Квест</option>
+                                    </select>
+                                </div>
+                                <div class="form-group"><label>Название</label><input type="text" id="offering-title"
+                                        required></div>
+                            </div>
+                            <div class="form-group"><label>Описание</label><textarea id="offering-description"
+                                    rows="2"></textarea></div>
+                            <div class="form-group"><label>Программа</label><textarea id="offering-program"
+                                    rows="2"></textarea></div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Город</label><input type="text" id="offering-city"></div>
+                                <div class="form-group"><label>Адрес</label><input type="text" id="offering-address">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Длительность</label><input type="text"
+                                        id="offering-duration"></div>
+                                <div class="form-group"><label>Стоимость (баллы)</label><input type="number"
+                                        id="offering-points" required></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Количество мест</label><input type="number"
+                                        id="offering-slots" required></div>
+                                <div class="form-group"><label>Возраст от</label><input type="number"
+                                        id="offering-age-from"></div>
+                                <div class="form-group"><label>Возраст до</label><input type="number"
+                                        id="offering-age-to"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Дата начала</label><input type="date"
+                                        id="offering-start-date"></div>
+                                <div class="form-group"><label>Дата окончания</label><input type="date"
+                                        id="offering-end-date"></div>
+                            </div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Контактное лицо</label><input type="text"
+                                        id="offering-contact-person"></div>
+                                <div class="form-group"><label>Телефон</label><input type="text"
+                                        id="offering-contact-phone"></div>
+                            </div>
+                            <div class="form-group"><label>Инструкция</label><textarea id="offering-instruction"
+                                    rows="2"></textarea></div>
+                            <div class="form-group">
+                                <label>Фото мероприятия</label>
+                                <input type="file" id="offering-image" accept="image/*">
+                                <small style="color:#6c7e8f; display:block; margin-top:5px;">Оставьте пустым для
+                                    стандартной картинки по типу</small>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Добавить мероприятие</button>
+                        </form>
+                        <div id="admin-offering-message"></div>
+                    </div>
+                </div>
+
+                <!-- Добавление челленджа -->
+                <div id="admin-add-challenge" class="admin-tab-content">
+                    <div class="form-card">
+                        <h3>Новый челлендж</h3>
+                        <form id="admin-add-challenge-form">
+                            <div class="form-group"><label>Название</label><input type="text" id="challenge-title"
+                                    required></div>
+                            <div class="form-group"><label>Описание</label><textarea id="challenge-description"
+                                    rows="2"></textarea></div>
+                            <div class="form-row">
+                                <div class="form-group"><label>Награда (баллы)</label><input type="number"
+                                        id="challenge-reward" required></div>
+                                <div class="form-group"><label>Дата начала</label><input type="date"
+                                        id="challenge-start-date"></div>
+                                <div class="form-group"><label>Дата окончания</label><input type="date"
+                                        id="challenge-end-date"></div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Добавить челлендж</button>
+                        </form>
+                        <div id="admin-challenge-message"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Вход -->
+            <div id="page-login" class="page">
+                <div class="form-card">
+                    <h2>Вход</h2>
+                    <form id="login-form">
+                        <div class="form-group"><label>Email</label><input type="email" id="login-email" required></div>
+                        <div class="form-group password-wrapper">
+                            <label>Пароль</label>
+                            <div class="password-field">
+                                <input type="password" id="login-password" required>
+                                <button type="button" class="toggle-password" data-target="login-password">
+                                    <img src="/images/eye-closed.png" alt="Показать" class="eye-icon"
+                                        onerror="this.style.display='none'">
+                                </button>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Войти</button>
+                    </form>
+                    <p class="form-footer">Нет аккаунта? <a onclick="showPage('register')">Зарегистрироваться</a></p>
+                    <div id="login-error" class="message-error"></div>
+                </div>
+            </div>
+
+            <!-- Регистрация -->
+            <div id="page-register" class="page">
+                <div class="form-card">
+                    <h2>Регистрация</h2>
+                    <form id="register-form">
+                        <div class="form-row">
+                            <div class="form-group"><label>Email</label><input type="email" id="reg-email" required>
+                            </div>
+                            <div class="form-group password-wrapper">
+                                <label>Пароль</label>
+                                <div class="password-field">
+                                    <input type="password" id="reg-password" required>
+                                    <button type="button" class="toggle-password" data-target="reg-password">
+                                        <img src="/images/eye-closed.png" alt="Показать" class="eye-icon"
+                                            onerror="this.style.display='none'">
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group password-wrapper">
+                            <label>Подтверждение пароля</label>
+                            <div class="password-field">
+                                <input type="password" id="reg-password2" required>
+                                <button type="button" class="toggle-password" data-target="reg-password2">
+                                    <img src="/images/eye-closed.png" alt="Показать" class="eye-icon"
+                                        onerror="this.style.display='none'">
+                                </button>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>ФИО ребёнка</label><input type="text" id="reg-fullname" required>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Школа</label><input type="text" id="reg-school"></div>
+                            <div class="form-group"><label>Класс</label><input type="number" id="reg-class"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>Город</label><input type="text" id="reg-city"></div>
+                            <div class="form-group"><label>Телефон родителя</label><input type="text" id="reg-phone"
+                                    placeholder="+7 (999) 999-99-99"></div>
+                        </div>
+                        <button type="submit" class="btn btn-primary btn-full">Зарегистрироваться</button>
+                    </form>
+                    <p class="form-footer">Уже есть аккаунт? <a onclick="showPage('login')">Войти</a></p>
+                    <div id="register-error" class="message-error"></div>
+                    <div id="register-success" class="message-success"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-col">
+                    <h4>Баллы Добра</h4>
+                    <p>Превращай достижения в возможности</p>
+                </div>
+                <div class="footer-col">
+                    <h4>Разделы</h4>
+                    <a onclick="showPage('home')">Главная</a>
+                    <a onclick="showPage('catalog')">Каталог</a>
+                </div>
+                <div class="footer-col">
+                    <h4>Контакты</h4>
+                    <p>info@balli-dobra.ru</p>
+                    <p>+7 (800) 555-35-35</p>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>2026 Баллы Добра. Все права защищены</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+
+</html>
