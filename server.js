@@ -1,3 +1,4 @@
+// Подключаем основные библиотеки
 const express = require('express');
 const session = require('express-session');
 const bcrypt = require('bcryptjs');
@@ -5,15 +6,20 @@ const multer = require('multer');
 const fs = require('fs');
 const sqlite3 = require('sqlite3').verbose();
 
+// Создаём приложение Express
 const app = express();
 const PORT = 3000;
 
+// Создаём папки для загрузок и картинок (если их нет)
 if (!fs.existsSync('./uploads')) fs.mkdirSync('./uploads');
 if (!fs.existsSync('./images')) fs.mkdirSync('./images');
 
+// Подключаемся к базе данных
 const db = new sqlite3.Database('./database.sqlite');
 
+// Создание таблиц в базе данных
 db.serialize(() => {
+    // Таблица пользователей
     db.run(`CREATE TABLE IF NOT EXISTS users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         email TEXT UNIQUE NOT NULL,
@@ -29,6 +35,7 @@ db.serialize(() => {
         created_at DATETIME DEFAULT CURRENT_TIMESTAMP
     )`);
 
+    // Таблица достижений
     db.run(`CREATE TABLE IF NOT EXISTS achievements (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -44,6 +51,7 @@ db.serialize(() => {
         FOREIGN KEY (user_id) REFERENCES users(id)
     )`);
 
+    // Таблица истории баллов
     db.run(`CREATE TABLE IF NOT EXISTS points_history (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -55,6 +63,7 @@ db.serialize(() => {
         FOREIGN KEY (user_id) REFERENCES users(id)
     )`);
 
+    // Таблица мероприятий
     db.run(`CREATE TABLE IF NOT EXISTS offerings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         type TEXT NOT NULL,
@@ -78,6 +87,7 @@ db.serialize(() => {
         is_active INTEGER DEFAULT 1
     )`);
 
+    // Таблица бронирований
     db.run(`CREATE TABLE IF NOT EXISTS bookings (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -91,6 +101,7 @@ db.serialize(() => {
         FOREIGN KEY (offering_id) REFERENCES offerings(id)
     )`);
 
+    // Таблица челленджей
     db.run(`CREATE TABLE IF NOT EXISTS challenges (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -101,6 +112,7 @@ db.serialize(() => {
         is_active INTEGER DEFAULT 1
     )`);
 
+    // Таблица выполненных челленджей
     db.run(`CREATE TABLE IF NOT EXISTS user_challenges (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -114,6 +126,7 @@ db.serialize(() => {
         FOREIGN KEY (challenge_id) REFERENCES challenges(id)
     )`);
 
+    // Таблица отзывов
     db.run(`CREATE TABLE IF NOT EXISTS reviews (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         booking_id INTEGER NOT NULL,
@@ -125,6 +138,7 @@ db.serialize(() => {
         is_approved INTEGER DEFAULT 1
     )`);
 
+    // Таблица уведомлений
     db.run(`CREATE TABLE IF NOT EXISTS notifications (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
@@ -136,6 +150,7 @@ db.serialize(() => {
     )`);
 });
 
+// Тестовые данные (заполняются при первом запуске)
 db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
     if (row.count === 0) {
         const adminPass = bcrypt.hashSync('admin123', 10);
@@ -149,6 +164,7 @@ db.get("SELECT COUNT(*) as count FROM users", [], (err, row) => {
     }
 });
 
+// Создаём 9 тестовых мероприятий
 db.get("SELECT COUNT(*) as count FROM offerings", [], (err, row) => {
     if (row.count === 0) {
         const offers = [
@@ -169,6 +185,7 @@ db.get("SELECT COUNT(*) as count FROM offerings", [], (err, row) => {
     }
 });
 
+// Создаём 3 тестовых челленджа
 db.get("SELECT COUNT(*) as count FROM challenges", [], (err, row) => {
     if (row.count === 0) {
         db.run(`INSERT INTO challenges (title, description, reward_points, start_date, end_date, is_active) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -180,18 +197,21 @@ db.get("SELECT COUNT(*) as count FROM challenges", [], (err, row) => {
     }
 });
 
+// Настройка загрузки файлов
 const storage = multer.diskStorage({
     destination: (req, file, cb) => cb(null, 'uploads/'),
     filename: (req, file, cb) => cb(null, Date.now() + '-' + file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_'))
 });
 const upload = multer({ storage });
 
+// Настройки Express
 app.use(express.static('./'));
 app.use('/uploads', express.static('uploads'));
 app.use('/images', express.static('images'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// Настройка сессий
 app.use(session({
     secret: 'balli-dobra-secret-key',
     resave: false,
@@ -199,9 +219,12 @@ app.use(session({
     cookie: { secure: false, maxAge: 7 * 24 * 60 * 60 * 1000 }
 }));
 
+// Функция отправки уведомления
 function sendNotification(userId, title, message) {
     db.run(`INSERT INTO notifications (user_id, title, message) VALUES (?, ?, ?)`, [userId, title, message]);
 }
+
+// API регистрации и входа
 
 app.post('/api/register', async (req, res) => {
     const { email, password, full_name, school, class_num, city, parent_phone } = req.body;
@@ -258,6 +281,8 @@ app.post('/api/logout', (req, res) => {
     res.json({ success: true });
 });
 
+// API профиля
+
 app.get('/api/profile', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Не авторизован' });
     db.get(`SELECT full_name, email, school, class, city, parent_phone, avatar_url FROM users WHERE id = ?`, [req.session.userId], (err, user) => {
@@ -281,6 +306,8 @@ app.post('/api/upload-avatar', upload.single('avatar'), (req, res) => {
     db.run(`UPDATE users SET avatar_url = ? WHERE id = ?`, [avatarUrl, req.session.userId]);
     res.json({ success: true, avatarUrl });
 });
+
+// API достижений
 
 app.post('/api/achievements', upload.single('document'), (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Не авторизован' });
@@ -312,6 +339,8 @@ app.get('/api/history', (req, res) => {
     });
 });
 
+// API бронирований
+
 app.get('/api/bookings', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Не авторизован' });
     db.all(`SELECT b.*, o.title, o.city, o.start_date, o.end_date FROM bookings b JOIN offerings o ON b.offering_id = o.id WHERE b.user_id = ? ORDER BY b.booked_at DESC`, [req.session.userId], (err, bookings) => {
@@ -325,6 +354,8 @@ app.get('/api/booking/:id', (req, res) => {
         res.json(booking || {});
     });
 });
+
+// API каталога
 
 app.get('/api/offerings', (req, res) => {
     let sql = `SELECT * FROM offerings WHERE is_active = 1 AND free_slots > 0`;
@@ -363,6 +394,8 @@ app.get('/api/offerings/popular', (req, res) => {
     });
 });
 
+// API рейтинга и статистики
+
 app.get('/api/rating', (req, res) => {
     db.all(`SELECT id, full_name, avatar_url, total_points FROM users WHERE role = 'child' ORDER BY total_points DESC LIMIT 10`, [], (err, users) => {
         res.json(users || []);
@@ -382,6 +415,8 @@ app.get('/api/stats', (req, res) => {
         });
     });
 });
+
+// API обмена баллов
 
 app.post('/api/exchange/:id', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Не авторизован' });
@@ -409,6 +444,8 @@ app.post('/api/exchange/:id', (req, res) => {
         });
     });
 });
+
+// API челленджей
 
 app.get('/api/challenges', (req, res) => {
     db.all(`SELECT * FROM challenges WHERE is_active = 1`, [], (err, challenges) => {
@@ -447,6 +484,8 @@ app.post('/api/challenge/:id/complete', upload.single('proof'), (req, res) => {
     });
 });
 
+// API отзывов
+
 app.get('/api/reviews/:offering_id', (req, res) => {
     db.all(`SELECT r.*, u.full_name FROM reviews r JOIN users u ON r.user_id = u.id WHERE r.offering_id = ? AND r.is_approved = 1 ORDER BY r.created_at DESC`, [req.params.offering_id], (err, reviews) => {
         res.json(reviews || []);
@@ -460,6 +499,8 @@ app.post('/api/review', (req, res) => {
         [booking_id, req.session.userId, offering_id, rating, comment]);
     res.json({ success: true });
 });
+
+// API администратора
 
 app.get('/api/admin/pending-achievements', (req, res) => {
     if (!req.session.userId) return res.status(401).json({ error: 'Не авторизован' });
@@ -626,9 +667,8 @@ app.get('/api/admin/achievements', (req, res) => {
     });
 });
 
+// Запуск сервера
 app.listen(PORT, () => {
-    console.log('\n========================================');
-    console.log('   Баллы Добра — сервер запущен');
-    console.log('   Адрес: http://localhost:' + PORT);
-    console.log('========================================\n');
+    console.log('Баллы Добра — сервер запущен');
+    console.log('Адрес: http://localhost:' + PORT);
 });

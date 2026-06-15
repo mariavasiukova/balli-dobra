@@ -1,9 +1,11 @@
+// глобальные переменные
 let currentUser = null;
 let currentPage = 1;
 let totalPages = 1;
 let currentBookingId = null;
 let currentOfferingId = null;
 
+// переключение между страницами
 function showPage(pageId) {
     const pages = document.querySelectorAll('.page');
     for (let i = 0; i < pages.length; i++) {
@@ -33,6 +35,7 @@ function showPage(pageId) {
     if (pageId === 'booking-detail' && currentBookingId) loadBookingDetail(currentBookingId);
 }
 
+// обновление шапки сайта (меню пользователя)
 function updateNavigation() {
     const userMenu = document.getElementById('user-menu');
     if (!userMenu) return;
@@ -70,6 +73,7 @@ function updateNavigation() {
     }
 }
 
+// выход из аккаунта
 async function logout() {
     await fetch('/api/logout', { method: 'POST' });
     currentUser = null;
@@ -77,6 +81,7 @@ async function logout() {
     showPage('home');
 }
 
+// загрузка текущего пользователя
 async function loadCurrentUser() {
     try {
         const response = await fetch('/api/me');
@@ -97,6 +102,7 @@ async function loadCurrentUser() {
     }
 }
 
+// статистика для баннера
 async function loadStats() {
     try {
         const response = await fetch('/api/stats');
@@ -114,6 +120,7 @@ async function loadStats() {
     }
 }
 
+// доска почёта (рейтинг)
 async function loadRating() {
     try {
         const response = await fetch('/api/rating');
@@ -145,6 +152,7 @@ async function loadRating() {
     }
 }
 
+// популярные предложения для главной
 async function loadPopularOffers() {
     try {
         const response = await fetch('/api/offerings/popular');
@@ -179,6 +187,7 @@ async function loadPopularOffers() {
     }
 }
 
+// челленджи
 async function loadChallenges() {
     try {
         let completedIds = [];
@@ -227,6 +236,7 @@ async function loadChallenges() {
     }
 }
 
+// выполнение челленджа с загрузкой фото
 async function completeChallenge(challengeId) {
     if (!currentUser) {
         alert('Войдите в аккаунт');
@@ -260,6 +270,7 @@ async function completeChallenge(challengeId) {
     fileInput.click();
 }
 
+// каталог мероприятий с фильтрацией и пагинацией
 async function loadCatalog() {
     try {
         const typeSelect = document.getElementById('filter-type');
@@ -305,6 +316,7 @@ async function loadCatalog() {
     }
 }
 
+// отрисовка пагинации
 function renderPagination() {
     const container = document.getElementById('catalog-pagination');
     if (!container) return;
@@ -319,11 +331,13 @@ function renderPagination() {
     container.innerHTML = html;
 }
 
+// переход на страницу пагинации
 function goToPage(page) {
     currentPage = page;
     loadCatalog();
 }
 
+// обмен баллов на мероприятие
 async function exchangeOffer(offerId) {
     if (!currentUser) {
         alert('Войдите в аккаунт');
@@ -347,11 +361,13 @@ async function exchangeOffer(offerId) {
     }
 }
 
+// показ деталей мероприятия
 function showOfferingDetail(offeringId) {
     currentOfferingId = offeringId;
     showPage('offering-detail');
 }
 
+// загрузка деталей мероприятия
 async function loadOfferingDetail(offeringId) {
     try {
         const response = await fetch('/api/offering/' + offeringId);
@@ -407,6 +423,7 @@ async function loadOfferingDetail(offeringId) {
     }
 }
 
+// загрузка профиля пользователя
 async function loadProfile() {
     try {
         const profileRes = await fetch('/api/profile');
@@ -484,7 +501,7 @@ async function loadProfile() {
             html += '<div class="empty-state">Пока нет достижений</div>';
         }
 
-        html += `</div><div class="subsection-header"><h3>История баллов</h3></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Дата</th><th>Действие</th><th>Изменение</th><th>Баланс</th><tr></thead><tbody>`;
+        html += `</div><div class="subsection-header"><h3>История баллов</h3></div><div class="table-wrapper"><table class="data-table"><thead><tr><th>Дата</th><th>Действие</th><th>Изменение</th><th>Баланс</th></tr></thead><tbody>`;
 
         if (history && history.length > 0) {
             for (let i = 0; i < history.length; i++) {
@@ -506,6 +523,7 @@ async function loadProfile() {
     }
 }
 
+// загрузка аватара
 async function uploadAvatar(event) {
     const file = event.target.files[0];
     if (!file) return;
@@ -526,6 +544,7 @@ async function uploadAvatar(event) {
     }
 }
 
+// редактирование профиля
 function editProfile() {
     const school = prompt('Школа:', document.getElementById('profile-school')?.innerText);
     const classNum = prompt('Класс:', document.getElementById('profile-class')?.innerText);
@@ -538,11 +557,13 @@ function editProfile() {
     }).then(() => loadProfile());
 }
 
+// показ деталей бронирования
 function showBookingDetail(bookingId) {
     currentBookingId = bookingId;
     showPage('booking-detail');
 }
 
+// загрузка деталей бронирования
 async function loadBookingDetail(bookingId) {
     try {
         const response = await fetch('/api/booking/' + bookingId);
@@ -580,6 +601,7 @@ async function loadBookingDetail(bookingId) {
     }
 }
 
+// настройка формы добавления достижения
 function setupAchievementForm() {
     const levelSelect = document.getElementById('ach-level');
     const placementSelect = document.getElementById('ach-placement');
@@ -632,6 +654,7 @@ function setupAchievementForm() {
     }
 }
 
+// пересчёт баллов в форме добавления достижения
 function updatePointsPreview() {
     const level = document.getElementById('ach-level')?.value;
     const placement = document.getElementById('ach-placement')?.value;
@@ -642,6 +665,7 @@ function updatePointsPreview() {
     if (preview) preview.innerHTML = points + ' баллов';
 }
 
+// админ-панель: загрузка достижений на проверке
 async function loadAdminPendingAchievements() {
     try {
         const response = await fetch('/api/admin/pending-achievements');
@@ -671,6 +695,7 @@ async function loadAdminPendingAchievements() {
     } catch (err) { console.error(err); }
 }
 
+// админ-панель: загрузка челленджей на проверке
 async function loadAdminPendingChallenges() {
     try {
         const response = await fetch('/api/admin/pending-challenges');
@@ -700,30 +725,35 @@ async function loadAdminPendingChallenges() {
     } catch (err) { console.error(err); }
 }
 
+// админ: одобрение достижения
 async function approveAchievement(id) {
     if (!confirm('Одобрить достижение?')) return;
     await fetch('/api/admin/approve-achievement/' + id, { method: 'POST' });
     loadAdminPendingAchievements();
 }
 
+// админ: отклонение достижения
 async function rejectAchievement(id) {
     const comment = prompt('Причина отклонения:');
     await fetch('/api/admin/reject-achievement/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment }) });
     loadAdminPendingAchievements();
 }
 
+// админ: одобрение челленджа
 async function approveChallenge(id) {
     if (!confirm('Одобрить выполнение челленджа?')) return;
     await fetch('/api/admin/approve-challenge/' + id, { method: 'POST' });
     loadAdminPendingChallenges();
 }
 
+// админ: отклонение челленджа
 async function rejectChallenge(id) {
     const comment = prompt('Причина отклонения:');
     await fetch('/api/admin/reject-challenge/' + id, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ comment }) });
     loadAdminPendingChallenges();
 }
 
+// настройка форм администратора
 function setupAdminForms() {
     const offeringForm = document.getElementById('admin-add-offering-form');
     if (offeringForm) {
@@ -787,6 +817,7 @@ function setupAdminForms() {
     }
 }
 
+// настройка вкладок в админ-панели
 function setupAdminTabs() {
     const tabs = document.querySelectorAll('.admin-tab');
     for (let i = 0; i < tabs.length; i++) {
@@ -802,6 +833,7 @@ function setupAdminTabs() {
     }
 }
 
+// настройка формы входа
 function setupLoginForm() {
     const form = document.getElementById('login-form');
     if (form) {
@@ -823,6 +855,7 @@ function setupLoginForm() {
     }
 }
 
+// настройка формы регистрации
 function setupRegisterForm() {
     const form = document.getElementById('register-form');
     if (form) {
@@ -858,6 +891,7 @@ function setupRegisterForm() {
     }
 }
 
+// настройка фильтров каталога
 function setupFilters() {
     const applyBtn = document.getElementById('apply-filters');
     const resetBtn = document.getElementById('reset-filters');
@@ -872,6 +906,7 @@ function setupFilters() {
     };
 }
 
+// настройка полей пароля (показать/скрыть)
 function setupPasswordToggles() {
     const toggleButtons = document.querySelectorAll('.toggle-password');
     for (let i = 0; i < toggleButtons.length; i++) {
@@ -891,6 +926,7 @@ function setupPasswordToggles() {
     }
 }
 
+// вспомогательные функции
 function getTypeLabel(type) {
     const types = { camp: 'Лагерь', excursion: 'Экскурсия', masterclass: 'Мастер-класс', quest: 'Квест' };
     return types[type] || type;
@@ -916,11 +952,13 @@ function getStatusClass(status) {
     return classes[status] || '';
 }
 
+// защита от XSS (экранирование HTML)
 function escapeHtml(text) {
     if (!text) return '';
     return text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
 }
 
+// запуск при загрузке страницы
 document.addEventListener('DOMContentLoaded', () => {
     loadCurrentUser();
     showPage('home');
